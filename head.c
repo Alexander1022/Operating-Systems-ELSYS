@@ -10,8 +10,8 @@ int main()
 {
     int file = 0;
     size_t size = 4096;
-    char buffer[size] = {0};
-    int n;
+    char buffer[size];
+    size_t n;
 
     file = open("a.txt", O_RDONLY);
 
@@ -22,48 +22,34 @@ int main()
 
     else
     {
-        int i =0;
+        int i;
         int j = 0;
         int counter = 0;
         int counter_2 = 0;
 
-        while((n=read(file, buffer, 4096)) > 0)
+        while((n=read(file, buffer, 4096)) > 0) 
        	{
-       		while(buffer[i] != '\0')
-          {
-            if(buffer[i] == '\n')
-            {
-              counter ++;
-            }
-            i++;
-          }
-          if(counter == 9)
-          {
-            while(buffer[j] != 0 || counter != 0)
-            {
-              write(1, (buffer + i), 1);
-              if(buffer[i] == '\n')
-              {
-                counter --;
-              }
-              i++;
-            }
-          }
-          else if(counter >-10)
-          {
-            while(counter_2 < 10)
-            {
-              write(1, buffer[i], 1);
-              if(buffer[i] == '\n')
-              {
-                counter_2 ++;
-              }
-              i++;
-            }
-          }
+         	for(i = 0 ; i < n && counter < 10 ; i++)
+         	{
+         		if(buffer[i] == '\n')
+         		{
+         			counter ++;
+         		}
+         	}
+         	
+         	if(counter == 10) 
+         	{
+         		write(1, buffer, i);
+         		break; 
+         	}
+   
+         	else
+         	{
+         		write(1, buffer, n);
+         	}
+         	
         }
-        write(1, "Hello\n", 5);
-        buffer[size - 1] = '\0';
+
         write(STDOUT_FILENO, "\n", 1);
         close(file);
     }
