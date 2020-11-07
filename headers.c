@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	    size_t n;
 
 	    file = open(argv[o], O_RDONLY);
-	    int name_count = sizeof(argv[0]) - 1;
+	    int name_count = sizeof(argv[0]);
 	    
 	    if(file < 0)
 	    {
