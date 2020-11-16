@@ -1,0 +1,20 @@
+1. Asparagus
+2. Apples
+3. Broccoli
+4. Tortillas
+5. Fish sticks
+6. Pizza
+7. Orange Juice
+8. Apple Juice
+9. Bacon
+10. Goat cheese
+11. Mozzarella
+12. Beef
+13. Chicken
+14. Salmon
+15. Tuna
+16. Cake
+17. Cookies
+18. Bread
+19. Potatoes
+20. Tomatoes
