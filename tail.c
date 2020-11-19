@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
 	if(argc < 2)
 	{
-		return -1;
+		
 	}
 
 	else
@@ -25,40 +25,45 @@ int main(int argc, char *argv[])
 
 		if(file < 0)
 		{
-			perror("Error");
+			return -1;
 		}
+
 		else
 		{	
 			i = lseek(file, 0, SEEK_END);
 
-			while(i != -1 && counter < 10)
+			while(i != -1 && counter != 10)
 			{
 
 				read(file, &wow, 1);	
-
 				i --;
-				i = lseek(file, i, SEEK_SET);
+				lseek(file, i, SEEK_SET);
 			
 
 				if(wow == '\n')
 				{
 					counter ++;
 				}
-					characters++;
+
+				characters++;
 			}
 
-			if (counter > 9)
+			characters = characters - 2;
+			char buffer[characters];
+
+			if (counter >= 10)
 			{
-    			lseek(file, 3, SEEK_CUR);
+    			lseek(file, 2, SEEK_CUR);
+		    	read(file, buffer, characters);
+		    	write(1, buffer, characters);
 			}
+
 			else
 			{
 				lseek(file, 0, SEEK_SET);
+			    read(file, buffer, characters);
+			    write(1, buffer, characters);
 			}
-
-			char buffer[characters];
-		    read(file, buffer, characters);
-		    write(1, buffer, characters);
 		}
 		close(file);
 	}
