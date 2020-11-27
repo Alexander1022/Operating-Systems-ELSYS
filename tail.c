@@ -76,30 +76,43 @@ int main(int argc, char *argv[])
 					int characters = 0;
 					int i = 0;	
 
-					i = lseek(file, 0, SEEK_END);
-							//
-					read(file, &wow, 1);
+					i = lseek(file, -1, SEEK_END);
+
+					read(file, &wow, 1); 
+
 					if(wow == '\n')
-					{
-						i--;
-						lseek(file, i, SEEK_SET);
-					}
-							//
-							
-					while(i != -1 && counter < 10)
-					{
-
-						read(file, &wow, 1);	
-
-						if(wow == '\n')
+					{	
+						while(i != -1 && counter < 11)
 						{
-							counter ++;
+							read(file, &wow, 1);	
+
+							if(wow == '\n')
+							{
+								counter ++;
+							}
+
+							characters++;
+
+							i --;
+							i = lseek(file, i, SEEK_SET);
 						}
+					}
+					else
+					{
+						while(i != -1 && counter < 10)
+						{
+							read(file, &wow, 1);	
 
-						characters++;
+							if(wow == '\n')
+							{
+								counter ++;
+							}
 
-						i --;
-						lseek(file, i, SEEK_SET);
+							characters++;
+
+							i --;
+							i = lseek(file, i, SEEK_SET);
+						}	
 					}
 
 					if (counter >= 10)
@@ -122,7 +135,7 @@ int main(int argc, char *argv[])
 
 					if(close(file) == -1)
 					{
-								//tail: error reading 'b.txt': Input/output error
+						//tail: error reading 'b.txt': Input/output error
 						int name_count = strlen(argv[f]);
 						write(2, "tail: error reading '", 21);
 						write(2, argv[f], name_count);
@@ -131,6 +144,7 @@ int main(int argc, char *argv[])
 
 					if(f != argc - 1)
 					{
+						write(1, "\n", 1);
 						write(1, "\n", 1);
 					}		
 				}
@@ -174,22 +188,45 @@ int main(int argc, char *argv[])
 
 			else
 			{	
-				i = lseek(file, 0, SEEK_END);
+				i = lseek(file, -1, SEEK_END);
 
-				while(i != -1 && counter < 10)
-				{
-					read(file, &wow, 1);	
+				read(file, &wow, 1); 
 
-					if(wow == '\n')
+				if(wow == '\n')
+				{	
+					while(i != -1 && counter < 11)
 					{
-						counter ++;
+						read(file, &wow, 1);	
+
+						if(wow == '\n')
+						{
+							counter ++;
+						}
+
+						characters++;
+
+						i --;
+						i = lseek(file, i, SEEK_SET);
 					}
-
-					characters++;
-
-					i --;
-					i = lseek(file, i, SEEK_SET);
 				}
+				else
+				{
+					while(i != -1 && counter < 10)
+					{
+						read(file, &wow, 1);	
+
+						if(wow == '\n')
+						{
+							counter ++;
+						}
+
+						characters++;
+
+						i --;
+						i = lseek(file, i, SEEK_SET);
+					}	
+				}
+				
 
 				if (counter >= 10)
 				{
