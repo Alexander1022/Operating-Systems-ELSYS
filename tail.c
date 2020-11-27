@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 {
 	if(argc < 2)
 	{
-	   return -1;
+		write(1, "\n", 1);
 	} 
 
 	else if(argc > 2)
@@ -38,7 +38,10 @@ int main(int argc, char *argv[])
 		{
 			if(strcmp(argv[f], "-") == 0)
 			{
-				return -1;
+				write(1, "==> ", 4);
+				write(1, "standard input", 14);
+				write(1, " <==", 4);
+				write(1, "\n", 1);
 			}
 
 			else
@@ -157,7 +160,7 @@ int main(int argc, char *argv[])
 
 		if(strcmp(argv[1], "-") == 0)
 		{
-			return -1;
+			write(1, "\n", 1);
 		}
 
 		else
@@ -245,6 +248,8 @@ int main(int argc, char *argv[])
 				    read(file, buffer, characters);
 				    write(1, buffer, characters);
 				}
+
+				write(1, "\n", 1);
 			}
 
 			if(close(file) == -1)
