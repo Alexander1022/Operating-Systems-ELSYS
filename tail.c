@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
 					int characters = 0;
 					int i = 0;	
 
+					// четем последния символ от файла
 					i = lseek(file, -1, SEEK_END);
 
 					read(file, &wow, 1); 
@@ -100,8 +101,13 @@ int main(int argc, char *argv[])
 							i = lseek(file, i, SEEK_SET);
 						}
 					}
+
+					// ако е нов ред (\n) просто не го броим
+
 					else
 					{
+						i = lseek(file, 0, SEEK_END);
+
 						while(i != -1 && counter < 10)
 						{
 							read(file, &wow, 1);	
@@ -124,7 +130,11 @@ int main(int argc, char *argv[])
 						char buffer[characters];
 						lseek(file, 2, SEEK_CUR);
 						read(file, buffer, characters);
-						write(1, buffer, characters);
+						if(write(1, buffer, characters) == -1)
+						{
+							write(1, "tail: error writing 'standart output'", 37);
+							perror(":");
+						}
 					}
 
 					else
@@ -133,7 +143,11 @@ int main(int argc, char *argv[])
 						char buffer[characters];
 						lseek(file, 0, SEEK_SET);
 						read(file, buffer, characters);
-						write(1, buffer, characters);
+						if(write(1, buffer, characters) == -1)
+						{
+							write(1, "tail: error writing 'standart output'", 37);
+							perror(":");
+						}
 					}
 
 					if(close(file) == -1)
@@ -149,7 +163,12 @@ int main(int argc, char *argv[])
 					{
 						write(1, "\n", 1);
 						write(1, "\n", 1);
-					}		
+					}
+					else
+					{
+						write(1, "\n", 1);
+					}
+							
 				}
 			}
 		}
@@ -214,6 +233,8 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
+					i = lseek(file, 0, SEEK_END);
+
 					while(i != -1 && counter < 10)
 					{
 						read(file, &wow, 1);	
@@ -237,7 +258,12 @@ int main(int argc, char *argv[])
 					char buffer[characters];
 	    			lseek(file, 2, SEEK_CUR);
 			    	read(file, buffer, characters);
-			    	write(1, buffer, characters);
+					if(write(1, buffer, characters) == -1)
+					{
+						//tail: error writing 'standard output': No space left on device
+						write(1, "tail: error writing 'standart output'", 37);
+						perror(":");
+					}
 				}
 
 				else
@@ -246,7 +272,11 @@ int main(int argc, char *argv[])
 					char buffer[characters];
 					lseek(file, 0, SEEK_SET);
 				    read(file, buffer, characters);
-				    write(1, buffer, characters);
+				    if(write(1, buffer, characters) == -1)
+					{
+						write(1, "tail: error writing 'standart output'", 37);
+						perror(":");
+					}
 				}
 
 				write(1, "\n", 1);
