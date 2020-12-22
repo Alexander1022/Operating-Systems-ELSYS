@@ -6,29 +6,38 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 
 char** parse_cmdline(const char* cmdline)
 {
-    int size_new = sizeof(cmdline);
-    int j = 0;
+    int index = 0;
     int arguments = 0;
-    char** divided_please = malloc(2);
+    char** divided_please = malloc(2 * sizeof(char*)); 
 
-    for (int i = 0 ; i < size_new ; i++)
+    while(1)
     {
-        if(cmdline[i] == ' ')
+        int id = 0;
+        if(cmdline[0] == '\n')
         {
-            divided_please[arguments][j] = realloc(&divided_please[arguments][j], arguments++);
-            divided_please[arguments][j] = '\0';
-            arguments++;
-            j = 0;
+            divided_please[0] = malloc(1);
+            divided_please[arguments][id] = '\0';
         }
 
-        else 
+        else
         {
-            divided_please[arguments] = realloc(divided_please[arguments], j++);
-            divided_please[arguments][j] = cmdline[i];
-            j++;
+            if(cmdline[index] == ' ')
+            {
+                divided_please[arguments][id] = '\0';
+                divided_please[arguments] = realloc(divided_please[arguments], (arguments + 2) * sizeof(char*));
+                arguments++;
+                id = 0;
+            }
+
+            else if(cmdline[index] != ' ')
+            {
+                divided_please[arguments][id] = cmdline[index];
+                id++;
+            }
         }
     }
 
@@ -42,6 +51,7 @@ int main()
     size_t read_f;
     
     write(1, "$ ", 2);
+
     while(input[size - 1] != '\n')
     {
         read_f = read(0, input + size, 1); 
@@ -49,12 +59,42 @@ int main()
         input = realloc(input, 1 + size);
     }
 
-    char** argv_list = parse_cmdline(input);
-    int size_of_args = 0;
+    char** argv_list = parse_cmdline(input); 
     
-    /*
+    int path_size = 0;
+
+    for( ; input[path_size] != ' ' ; path_size++);
+    
+    char* path = malloc(path_size);
+    
+    for(int s = 0 ; s < path_size ; s++)
+    {
+        path[s] = input[s];
+    }
+
     pid_t f = fork();
-    char* path = argv_list[0];
-    execv(path, argv_list);
-    */
+
+    if(f == -1)
+    {
+        perror("fork");
+    }
+
+    else if(f == 0)
+    {
+        int exec = execv(path, argv_list);
+
+        if(exec == -1)
+        {
+            perror(path);
+        }
+    }
+
+    else
+    {
+        int status;
+        waitpid(f, &status, 0);
+    }
+
+    free(argv_list);
+    free(input);
 }
