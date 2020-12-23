@@ -1,3 +1,15 @@
+//------------------------------------------------------------------------
+// NAME: Alexander Yordanov
+// CLASS: XIb
+// NUMBER: 1
+// PROBLEM: 2
+// FILE NAME: shell.c
+// FILE PURPOSE:
+// Целта на задачата е да се реализира прост команден интерпретатор shell.
+// При стартиране на програмата, тя започва да чете редове от стандартния вход и да ги интерпретира. 
+// За тази цел програмата трябва да раздели командния ред на думи, като за разделител се използва интервал (’ ’).
+//------------------------------------------------------------------------
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -7,6 +19,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+
+//------------------------------------------------------------------------
+// FUNCTION: parse_cmdline 
+// предназначение на функцията: разделя динамичен масив на отделни думи, където има разстояние
+// PARAMETERS: const char* cmdline (предназначение - stdin)
+//------------------------------------------------------------------------
 
 char** parse_cmdline(const char* cmdline)
 {
@@ -40,66 +58,80 @@ char** parse_cmdline(const char* cmdline)
             }
         }
     }
-
+    
     return divided_please;
 }
 
+//------------------------------------------------------------------------
+// FUNCTION: main
+// предназначение на функцията: execute-ва програмата, дадена от нас в stdin
+// PARAMETERS: -
+//------------------------------------------------------------------------
+
 int main()
 {
-    char* input;
-    size_t size = 100;
-    int path_size = 0;
-
-    input = (char *)malloc(size * sizeof(char));
-    
-    write(1, "$ ", 2);
-
-    getline(&input, &size, stdin);
-
-    int i = 0;
-
-    for( ; i < strlen(input) ; i++)
+    while(1)
     {
-        if(input[i] == ' ')
+        char* input;
+        size_t size = 100;
+        int path_size = 0;
+
+        input = (char *)malloc(size * sizeof(char));
+        
+        write(1, "$ ", 2);
+
+        getline(&input, &size, stdin);
+
+        int i = 0;
+
+        for( ; i < strlen(input) ; i++)
         {
-            break;
+            if(input[i] == ' ')
+            {
+                break;
+            }
         }
-    }
 
-    path_size = i;
+        path_size = i;
 
-    char* path = malloc(path_size);
-    
-    for(int i = 0 ; i < path_size ; i++)
-    {
-        path[i] = input[i];
-    }
-
-    char** argv_list = parse_cmdline(input); 
-
-    pid_t f = fork();
-
-    if(f == -1)
-    {
-        perror("fork");
-    }
-
-    else if(f == 0)
-    {
-        int exec = execv(path, argv_list);
-
-        if(exec == -1)
+        char* path = malloc(path_size);
+        
+        for(int j = 0 ; j < path_size ; j++)
         {
-            perror(path);
+            path[j] = input[j];
         }
-    }
 
-    else
-    {
-        int status;
-        waitpid(f, &status, 0);
-    }
+        char** argv_list = parse_cmdline(input);
 
-    free(argv_list);
-    free(input);
+        argv_list = realloc(argv_list, sizeof(argv_list) + 6);
+        strncat(*argv_list, " NULL", 6); 
+
+        pid_t f = fork();
+
+        if(f == -1)
+        {
+            perror("fork");
+        }
+
+        else if(f == 0)
+        {
+            int exec = execv(path, argv_list);
+
+            if(exec == -1)
+            {
+                perror(path);
+            }
+
+            exit(f);
+        }
+
+        else
+        {
+            int status = 0;
+            waitpid(f, &status, 0);
+        }
+
+        free(argv_list);
+        free(input);
+    }
 }
