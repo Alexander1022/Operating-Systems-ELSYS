@@ -10,33 +10,33 @@
 
 char** parse_cmdline(const char* cmdline)
 {
-    int index = 0;
+    int ind = 0;
     int arguments = 0;
-    char** divided_please = malloc(2 * sizeof(char*)); 
+    char** divided_please = (char **)malloc(2 * sizeof(char));
 
-    while(1)
+    for(int index = 0 ; index < strlen(cmdline) ; index++)
     {
-        int id = 0;
         if(cmdline[0] == '\n')
         {
             divided_please[0] = malloc(1);
-            divided_please[arguments][id] = '\0';
+            divided_please[0][0] =  '\0';
         }
 
         else
         {
             if(cmdline[index] == ' ')
             {
-                divided_please[arguments][id] = '\0';
+                divided_please[arguments][ind] = '\0';
                 divided_please[arguments] = realloc(divided_please[arguments], (arguments + 2) * sizeof(char*));
                 arguments++;
-                id = 0;
+                ind = 0;
             }
 
-            else if(cmdline[index] != ' ')
+            else if(cmdline[index] != ' ' && cmdline[index] != '\n')
             {
-                divided_please[arguments][id] = cmdline[index];
-                id++;
+                divided_please[arguments] = realloc(divided_please[arguments], ind + 2);
+                divided_please[arguments][ind] = cmdline[index];
+                ind ++;
             }
         }
     }
@@ -46,31 +46,36 @@ char** parse_cmdline(const char* cmdline)
 
 int main()
 {
-    char* input = malloc(2);
-    size_t size = 0;
-    size_t read_f;
+    char* input;
+    size_t size = 100;
+    int path_size = 0;
+
+    input = (char *)malloc(size * sizeof(char));
     
     write(1, "$ ", 2);
 
-    while(input[size - 1] != '\n')
+    getline(&input, &size, stdin);
+
+    int i = 0;
+
+    for( ; i < strlen(input) ; i++)
     {
-        read_f = read(0, input + size, 1); 
-        size = size + 1; 
-        input = realloc(input, 1 + size);
+        if(input[i] == ' ')
+        {
+            break;
+        }
+    }
+
+    path_size = i;
+
+    char* path = malloc(path_size);
+    
+    for(int i = 0 ; i < path_size ; i++)
+    {
+        path[i] = input[i];
     }
 
     char** argv_list = parse_cmdline(input); 
-    
-    int path_size = 0;
-
-    for( ; input[path_size] != ' ' ; path_size++);
-    
-    char* path = malloc(path_size);
-    
-    for(int s = 0 ; s < path_size ; s++)
-    {
-        path[s] = input[s];
-    }
 
     pid_t f = fork();
 
