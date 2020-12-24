@@ -58,7 +58,9 @@ char** parse_cmdline(const char* cmdline)
             }
         }
     }
-    
+
+    divided_please[arguments][ind] = 0;
+
     return divided_please;
 }
 
@@ -102,9 +104,6 @@ int main()
         }
 
         char** argv_list = parse_cmdline(input);
-
-        argv_list = realloc(argv_list, sizeof(argv_list) + 6);
-        strncat(*argv_list, " NULL", 6); 
 
         pid_t f = fork();
 
