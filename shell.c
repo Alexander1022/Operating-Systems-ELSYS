@@ -30,7 +30,7 @@ char** parse_cmdline(const char* cmdline)
 {
     int ind = 0;
     int arguments = 0;
-    char** divided_please = (char **)malloc(2 * sizeof(char));
+    char** divided_please = malloc(2 * sizeof(char));
 
     for(int index = 0 ; index < strlen(cmdline) ; index++)
     {
@@ -45,7 +45,7 @@ char** parse_cmdline(const char* cmdline)
             if(cmdline[index] == ' ')
             {
                 divided_please[arguments][ind] = '\0';
-                divided_please[arguments] = realloc(divided_please[arguments], (arguments + 2) * sizeof(char*));
+                divided_please[arguments] = realloc(divided_please[arguments], (arguments + 2) * sizeof(char));
                 arguments++;
                 ind = 0;
             }
@@ -60,7 +60,7 @@ char** parse_cmdline(const char* cmdline)
     }
 
     arguments ++;
-    divided_please[arguments] = 0;
+    divided_please[arguments] = NULL;
 
     return divided_please;
 }
@@ -78,16 +78,23 @@ int main()
         char* input;
         size_t size = 100;
         int path_size = 0;
+        int bytes_read;
 
         input = (char *)malloc(size * sizeof(char));
         
         write(1, "$ ", 2);
 
-        getline(&input, &size, stdin);
+        bytes_read = getline(&input, &size, stdin);
 
         if(strlen(input) == 1)
         {
             continue;
+        }
+
+        if(bytes_read == -1)
+        {
+            write(1, "\n", 1);
+            break;
         }
 
         //just in case i need path separately. 
@@ -134,10 +141,22 @@ int main()
         else
         {
             int status = 0;
-            waitpid(f, &status, 0);
+            int pid = waitpid(f, &status, 0);
+
+            if(pid < 0)
+            {
+                perror("waitpid");
+                break;
+            }
+
+            if(pid == 0)
+            {
+                break;
+            }
         }
 
         free(argv_list);
         free(input);
+        free(path);
     }
 }
