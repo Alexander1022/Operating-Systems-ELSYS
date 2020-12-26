@@ -28,40 +28,43 @@
 
 char** parse_cmdline(const char* cmdline)
 {
-    int ind = 0;
     int arguments = 0;
+    char* copy_of_cmdline = strdup(cmdline);
     char** divided_please = malloc(2 * sizeof(char));
+    char* arr = strtok(copy_of_cmdline, " ");
+    int i;
 
-    for(int index = 0 ; index < strlen(cmdline) ; index++)
+    while(arr != NULL)
     {
-        if(cmdline[0] == '\n')
-        {
-            divided_please[0] = malloc(1);
-            divided_please[0][0] =  '\0';
-        }
+        int size = strlen(arr);
+        int index = 0;
+        i = 0;
 
-        else
+        while(i != size)
         {
-            if(cmdline[index] == ' ')
+            if(arr[i] == '\n')
             {
-                divided_please[arguments][ind] = '\0';
-                divided_please[arguments] = realloc(divided_please[arguments], (arguments + 2) * sizeof(char));
-                arguments++;
-                ind = 0;
+                break;
             }
 
-            else if(cmdline[index] != ' ' && cmdline[index] != '\n')
+            else
             {
-                divided_please[arguments] = realloc(divided_please[arguments], ind + 2);
-                divided_please[arguments][ind] = cmdline[index];
-                ind ++;
+                arr[index++] = arr[i];
             }
+            
+            i++;
         }
+
+        arr[index] = '\0';
+
+        divided_please[arguments] = arr;
+        arguments ++;
+        divided_please = realloc(divided_please, (arguments + 1) * sizeof(char**));
+        
+        arr = strtok(NULL, " ");
     }
 
-    arguments ++;
     divided_please[arguments] = NULL;
-
     return divided_please;
 }
 
@@ -86,20 +89,20 @@ int main()
 
         bytes_read = getline(&input, &size, stdin);
 
-        if(bytes_read == 1)
+        if(strlen(input) == 1)
         {
             continue;
         }
 
         if(bytes_read == -1)
         {
+            write(1, "\n", 1);
             break;
         }
 
-        //just in case i need path separately. 
-        int i = 0;
-
-        for( ; i < strlen(input) ; i++)
+        //just in case i need path separately.
+        int i;
+        for(i = 0 ; i < strlen(input) ; i++)
         {
             if(input[i] == ' ')
             {
