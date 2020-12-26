@@ -86,14 +86,13 @@ int main()
 
         bytes_read = getline(&input, &size, stdin);
 
-        if(strlen(input) == 1)
+        if(bytes_read == 1)
         {
             continue;
         }
 
         if(bytes_read == -1)
         {
-            write(1, "\n", 1);
             break;
         }
 
@@ -162,6 +161,7 @@ int main()
 
 
         //free all the things i malloc
+
         free(argv_list);
         free(input);
         free(path);
