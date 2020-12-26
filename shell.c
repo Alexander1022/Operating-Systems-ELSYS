@@ -59,7 +59,8 @@ char** parse_cmdline(const char* cmdline)
         }
     }
 
-    divided_please[arguments][ind] = 0;
+    arguments ++;
+    divided_please[arguments] = 0;
 
     return divided_please;
 }
@@ -84,6 +85,12 @@ int main()
 
         getline(&input, &size, stdin);
 
+        if(strlen(input) == 1)
+        {
+            continue;
+        }
+
+        //just in case i need path separately. 
         int i = 0;
 
         for( ; i < strlen(input) ; i++)
@@ -114,11 +121,11 @@ int main()
 
         else if(f == 0)
         {
-            int exec = execv(path, argv_list);
+            int exec = execv(argv_list[0], argv_list);
 
             if(exec == -1)
             {
-                perror(path);
+                perror(argv_list[0]);
             }
 
             exit(f);
