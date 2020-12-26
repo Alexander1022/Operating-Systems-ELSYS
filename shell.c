@@ -116,7 +116,10 @@ int main()
         {
             path[j] = input[j];
         }
+        /////
 
+
+        //exec the command and the argument from parse_cmdline()
         char** argv_list = parse_cmdline(input);
 
         pid_t f = fork();
@@ -155,8 +158,13 @@ int main()
             }
         }
 
+        ////
+
+
+        //free all the things i malloc
         free(argv_list);
         free(input);
         free(path);
+        ////
     }
 }
