@@ -30,7 +30,7 @@ char** parse_cmdline(const char* cmdline)
 {
     int arguments = 0;
     char* copy_of_cmdline = strdup(cmdline);
-    char** divided_please = malloc(2 * sizeof(char));
+    char** divided_please = malloc(1 * sizeof(char));
     char* arr = strtok(copy_of_cmdline, " ");
     int i;
 
@@ -79,13 +79,13 @@ int main()
     while(1)
     {
         char* input;
-        size_t size = 100;
+        size_t size = 150;
         int path_size = 0;
         int bytes_read;
 
         input = (char *)malloc(size * sizeof(char));
         
-        write(1, "$ ", 2);
+        write(1, "$ ", 3);
 
         bytes_read = getline(&input, &size, stdin);
 
@@ -133,7 +133,7 @@ int main()
 
         else if(f == 0)
         {
-            int exec = execv(argv_list[0], argv_list);
+            int exec = execvp(argv_list[0], argv_list);
 
             if(exec == -1)
             {
@@ -145,26 +145,20 @@ int main()
 
         else
         {
-            int status = 0;
+            int status;
             int pid = waitpid(f, &status, 0);
 
-            if(pid < 0)
+            if(pid == -1)
             {
                 perror("waitpid");
                 break;
             }
 
-            if(pid == 0)
-            {
-                break;
-            }
         }
-
         ////
 
 
         //free all the things i malloc
-
         free(argv_list);
         free(input);
         free(path);
