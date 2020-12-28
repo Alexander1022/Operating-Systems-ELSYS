@@ -64,8 +64,6 @@ char** parse_cmdline(const char* cmdline)
         arr = strtok(NULL, " ");
     }
 
-    divided_please[arguments] = '\0';
-    arguments ++;
     divided_please[arguments] = NULL;
     return divided_please;
 }
@@ -102,6 +100,7 @@ int main()
         }
 
         //just in case i need path separately.
+        /*
         int i;
         for(i = 0 ; i < strlen(input) ; i++)
         {
@@ -118,7 +117,9 @@ int main()
         for(int j = 0 ; j < path_size ; j++)
         {
             path[j] = input[j];
+            
         }
+        */
         /////
 
 
@@ -134,11 +135,12 @@ int main()
 
         else if(f == 0)
         {
-            int exec = execvp(argv_list[0], argv_list);
+            int exec = execv(argv_list[0], argv_list);
 
-            if(exec == -1)
+            if(exec < 0)
             {
                 perror(argv_list[0]);
+                exit(1);
             }
 
             exit(f);
@@ -146,23 +148,21 @@ int main()
 
         else
         {
-            int status;
+            int status = 0;
             int pid = waitpid(f, &status, 0);
 
             if(pid == -1)
             {
                 perror("waitpid");
-                break;
             }
 
         }
         ////
-
-
+        
         //free all the things i malloc
         free(argv_list);
         free(input);
-        free(path);
+        //free(path);
         ////
     }
 }
