@@ -64,6 +64,8 @@ char** parse_cmdline(const char* cmdline)
         arr = strtok(NULL, " ");
     }
 
+    divided_please[arguments] = '\0';
+    arguments ++;
     divided_please[arguments] = NULL;
     return divided_please;
 }
@@ -85,7 +87,7 @@ int main()
 
         input = (char *)malloc(size * sizeof(char));
         
-        write(1, "$ ", 3);
+        write(1, "$ ", 2);
 
         bytes_read = getline(&input, &size, stdin);
 
@@ -96,7 +98,6 @@ int main()
 
         if(bytes_read == -1)
         {
-            write(1, "\n", 1);
             break;
         }
 
