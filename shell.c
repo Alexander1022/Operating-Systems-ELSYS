@@ -122,7 +122,6 @@ int main()
         */
         /////
 
-
         //exec the command and the argument from parse_cmdline()
         char** argv_list = parse_cmdline(input);
 
@@ -131,16 +130,19 @@ int main()
         if(f == -1)
         {
             perror("fork");
+            free(input);
+            return 1;
         }
 
         else if(f == 0)
         {
             int exec = execv(argv_list[0], argv_list);
 
-            if(exec < 0)
+            if(exec == -1)
             {
                 perror(argv_list[0]);
-                exit(1);
+                free(input);
+                return -1;
             }
 
             exit(f);
@@ -155,14 +157,15 @@ int main()
             {
                 perror("waitpid");
             }
-
         }
         ////
-        
+
         //free all the things i malloc
         free(argv_list);
         free(input);
         //free(path);
         ////
     }
+
+    return 0;
 }
