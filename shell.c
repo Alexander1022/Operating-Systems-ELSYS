@@ -30,7 +30,7 @@ char** parse_cmdline(const char* cmdline)
 {
     int arguments = 0;
     char* copy_of_cmdline = strdup(cmdline);
-    char** divided_please = malloc(1 * sizeof(char));
+    char** divided_please = (char**)malloc(1 * sizeof(char*));
     char* arr = strtok(copy_of_cmdline, " ");
     int i;
 
@@ -59,7 +59,7 @@ char** parse_cmdline(const char* cmdline)
 
         divided_please[arguments] = arr;
         arguments ++;
-        divided_please = realloc(divided_please, (arguments + 1) * sizeof(char**));
+        divided_please = realloc(divided_please, (arguments + 1) * sizeof(char*));
         
         arr = strtok(NULL, " ");
     }
@@ -89,62 +89,41 @@ int main()
 
         bytes_read = getline(&input, &size, stdin);
 
-        if(strlen(input) == 1)
+        if(bytes_read == 1)
         {
+            free(input);
             continue;
         }
 
         if(bytes_read == -1)
         {
+            free(input);
             break;
         }
 
-        //just in case i need path separately.
-        /*
-        int i;
-        for(i = 0 ; i < strlen(input) ; i++)
-        {
-            if(input[i] == ' ')
-            {
-                break;
-            }
-        }
-
-        path_size = i;
-
-        char* path = malloc(path_size);
-        
-        for(int j = 0 ; j < path_size ; j++)
-        {
-            path[j] = input[j];
-            
-        }
-        */
-        /////
-
         //exec the command and the argument from parse_cmdline()
-        char** argv_list = parse_cmdline(input);
-
+        
         pid_t f = fork();
 
         if(f == -1)
         {
             perror("fork");
             free(input);
-            return 1;
         }
 
         else if(f == 0)
         {
-            int exec = execv(argv_list[0], argv_list);
+            char** argv_list = parse_cmdline(input);
+
+            int exec = execvp(argv_list[0], argv_list);
 
             if(exec == -1)
             {
                 perror(argv_list[0]);
-                free(input);
-                return -1;
             }
 
+            free(argv_list);
+            free(input);
             exit(f);
         }
 
@@ -152,18 +131,14 @@ int main()
         {
             int status = 0;
             int pid = waitpid(f, &status, 0);
-
+            
             if(pid == -1)
             {
                 perror("waitpid");
             }
-        }
-        ////
 
-        //free all the things i malloc
-        free(argv_list);
-        free(input);
-        //free(path);
+            free(input);
+        }
         ////
     }
 
