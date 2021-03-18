@@ -10,15 +10,29 @@
 #include <errno.h>
 
 pthread_mutex_t lock;
-int minerals = 0;
+int minerals = 0; 
+int blocks[2];
 
 void *scv(void *args)
 {
     int scv_counter;
     scv_counter = *((int*)args);
+    pthread_mutex_lock(&lock);
+    sleep(3);
+    if(blocks[0] != 0)
+    {
+        printf("SCV %d is mining from mineral block 1\n", scv_counter);
+    }
 
-    printf("SCV %d is mining from mineral block M\n", scv_counter);
+    else if(blocks[1] != 0)
+    {
+        sleep(3);
+        printf("SCV %d is mining from mineral block 2\n", scv_counter);
+    }
+
+    printf("SCV %d is transporting minerals\n", scv_counter);
     
+    pthread_mutex_unlock(&lock);
     pthread_exit(NULL);
 }
 
@@ -26,8 +40,13 @@ int main()
 {
     pthread_t *SCV_T = malloc(5 * sizeof(pthread_t));
 
-    int counter_soldier = 0;
+    int soldier_counter = 0;
     int l_rc;
+
+    for(int i = 0 ; i < 2 ; i++)
+    {
+        blocks[i] = 500;
+    }
 
     for(int i = 0 ; i < 5 ; i++)
     {
@@ -46,7 +65,7 @@ int main()
         pthread_join(SCV_T[i], NULL);
     }
 
-    counter_soldier++;
+    soldier_counter++;
 
     return 0;
 }
