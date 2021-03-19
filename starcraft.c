@@ -52,6 +52,14 @@ void *scv(void *args)
                     sleep(2);
                     printf("SCV %d delivered minerals to the Command center\n", scv_counter);
                     cc.all_the_scvs_mined = cc.all_the_scvs_mined + 8;
+
+                    if(cc.all_the_scvs_mined > 50)
+                    {
+                        sleep(1);
+                        cc.soldier_counter = cc.soldier_counter + 1;
+                        cc.all_the_scvs_mined = cc.all_the_scvs_mined - 50; 
+                        printf("You wanna piece of me, boy?\n");
+                    }
                 }
 
                 else
