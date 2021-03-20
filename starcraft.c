@@ -53,12 +53,20 @@ void *scv(void *args)
                     printf("SCV %d delivered minerals to the Command center\n", scv_counter);
                     cc.all_the_scvs_mined = cc.all_the_scvs_mined + 8;
 
-                    if(cc.all_the_scvs_mined > 50)
+                    if(cc.soldier_counter != 20)
                     {
-                        sleep(1);
-                        cc.soldier_counter = cc.soldier_counter + 1;
-                        cc.all_the_scvs_mined = cc.all_the_scvs_mined - 50; 
-                        printf("You wanna piece of me, boy?\n");
+                        if(cc.all_the_scvs_mined > 50)
+                        {
+                            sleep(1);
+                            cc.soldier_counter = cc.soldier_counter + 1;
+                            cc.all_the_scvs_mined = cc.all_the_scvs_mined - 50; 
+                            printf("You wanna piece of me, boy?\n");
+                        }
+
+                        else
+                        {
+                            printf("Not enough minerals.\n");
+                        }
                     }
                 }
 
@@ -79,47 +87,62 @@ void *scv(void *args)
     pthread_exit(NULL);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    cc.all_the_scvs_mined = 0;
     pthread_t *SCV_T = malloc(5 * sizeof(pthread_t));
 
     int l_rc;
 
     int all_minerals = 0;
 
-    for(int i = 0 ; i < SIZE ; i++)
+    if(argc < 2)
     {
-        blocks[i] = 500;
-        all_minerals = all_minerals + blocks[i];
-    }
-
-    for(int i = 0 ; i < SIZE ; i++)
-    {
-        flag_if_the_mineral_is_busy[i] = 0;
-    }
-
-    for(int i = 0 ; i < 5 ; i++)
-    {
-        int *id = malloc(sizeof(int));
-        *id = i + 1;
-        l_rc = pthread_create(&SCV_T[i], NULL, &scv, (void *)id);
-
-        if(l_rc)
-        {   
-            printf("%d - %s\n", l_rc, strerror(l_rc));
-            return 1;
-        }
-
-        if((5 + cc.soldier_counter) == 200 || cc.soldier_counter == 20)
+        for(int i = 0 ; i < SIZE ; i++)
         {
-            return 1;
+            blocks[i] = 500;
+            all_minerals = all_minerals + blocks[i];
+        }
+
+        for(int i = 0 ; i < SIZE ; i++)
+        {
+            flag_if_the_mineral_is_busy[i] = 0;
+        }
+
+        for(int i = 0 ; i < 5 ; i++)
+        {
+            int *id = malloc(sizeof(int));
+            *id = i + 1;
+            l_rc = pthread_create(&SCV_T[i], NULL, &scv, (void *)id);
+
+            if(l_rc)
+            {   
+                printf("%d - %s\n", l_rc, strerror(l_rc));
+                return 1;
+            }
+
+            if((5 + cc.soldier_counter) == 200)
+            {
+                return 1;
+            }
+        }
+
+        for(int i = 0 ; i < 5 ; i++)
+        {
+            pthread_join(SCV_T[i], NULL);
         }
     }
 
-    for(int i = 0 ; i < 5 ; i++)
+    else if(argc == 2)
     {
-        pthread_join(SCV_T[i], NULL);
+        int size_of_blocks = atoi(argv[1]);
+
+        for(int i = 0 ; i < size_of_blocks ; i++)
+        {
+            all_minerals = all_minerals + 500;
+        }
     }
+
 
     printf("Map minerals %d, player minerals %d, SCVs %d, Marines %d\n", all_minerals, cc.all_the_scvs_mined, 5, cc.soldier_counter);
 
