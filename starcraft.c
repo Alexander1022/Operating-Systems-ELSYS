@@ -1,3 +1,18 @@
+//--------------------------------------------
+// NAME: Alexander Jordanov
+// CLASS: XI b
+// NUMBER: 1
+// PROBLEM: #2 - threads
+// FILE NAME: starcraft.c (unix file name)
+// FILE PURPOSE:
+// Първата ГОЛЯМА задача за този срок - симулиране на играта Starcraft с помощта на нишки 
+// Студиото за разработка на игри Blizzard Entertainment има нужда от помощ в разработването на прототип на следваща игра от поредицата StarCraft. Подобно на предишните версии
+// на играта, когато играта стартира, играчът разполага с 5 работници (SCV), Команден център (Command center) и 0 минерали. Целта на играча е да построи 20 войника. Войниците
+// струват минерали, които се набавят с помощта на работници. Броят на минералните блокове се подава като аргумент при стартирането на играта. Играта приключва след като се
+// изкопаят всички минерални блокове на картата и се построят 20 войника. Играчът подава команди на стандартния вход. Целта на задачата е да се реализира синхронизация на
+// нишки посредством mutex-и.
+//---------------------------------------------
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -70,6 +85,7 @@ void *scv(void *args)
                     }
                 }
 
+
                 else
                 {
                     break;
@@ -129,7 +145,11 @@ int main(int argc, char *argv[])
 
         for(int i = 0 ; i < 5 ; i++)
         {
-            pthread_join(SCV_T[i], NULL);
+            if(pthread_join(SCV_T[i], NULL) != 0)
+            {
+                perror("pthread_join() failed\n");
+                return 1;
+            }
         }
     }
 
@@ -142,6 +162,8 @@ int main(int argc, char *argv[])
             all_minerals = all_minerals + 500;
         }
     }
+
+    pthread_mutex_destroy(&lock);
 
 
     printf("Map minerals %d, player minerals %d, SCVs %d, Marines %d\n", all_minerals, cc.all_the_scvs_mined, 5, cc.soldier_counter);
