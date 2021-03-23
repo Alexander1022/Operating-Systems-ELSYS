@@ -45,11 +45,11 @@ void *scv(void *args)
     int scv_counter;
     scv_counter = *((int*)args);
 
-    pthread_mutex_lock(&lock);
     sleep(3);
 
     for(int i = 0 ; i < SIZE ; i++)
     {
+        
         sleep(3);
 
         while(blocks[i] > 0)
@@ -59,6 +59,7 @@ void *scv(void *args)
             {
                 if(flag_if_the_mineral_is_busy[i] == 0)
                 {
+                    pthread_mutex_lock(&lock);
                     printf("SCV %d is mining from mineral block %d\n", scv_counter, i + 1);
                     flag_if_the_mineral_is_busy[i] = 1;
                     blocks[i] = blocks[i] - 8;
@@ -67,6 +68,8 @@ void *scv(void *args)
                     sleep(2);
                     printf("SCV %d delivered minerals to the Command center\n", scv_counter);
                     cc.all_the_scvs_mined = cc.all_the_scvs_mined + 8;
+
+                    pthread_mutex_unlock(&lock);
 
                     if(cc.soldier_counter != 20)
                     {
@@ -97,9 +100,8 @@ void *scv(void *args)
                 break;
             }
         }
+        
     }
-    
-    pthread_mutex_unlock(&lock);
     pthread_exit(NULL);
 }
 
@@ -163,10 +165,11 @@ int main(int argc, char *argv[])
         }
     }
 
-    pthread_mutex_destroy(&lock);
-
 
     printf("Map minerals %d, player minerals %d, SCVs %d, Marines %d\n", all_minerals, cc.all_the_scvs_mined, 5, cc.soldier_counter);
-
+    
+    pthread_exit(NULL);
+    pthread_mutex_destroy(&lock);
+    
     return 0;
 }
