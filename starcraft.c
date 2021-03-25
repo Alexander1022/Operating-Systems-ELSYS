@@ -54,7 +54,7 @@ void *scv(void *args)
     {
         sleep(3);
 
-        while(*(blocks + i) > 8)
+        while(*(blocks + i) > 0)
         {
             sleep(3);
             if(*(blocks + i) > 8)
@@ -79,6 +79,22 @@ void *scv(void *args)
                 {
                     break;
                 }
+            }
+
+            else if(*(blocks + i) > 0 || *(blocks + i) < 8)
+            {
+                pthread_mutex_lock(&lock);
+                int value = *(blocks + i);
+                printf("SCV %d is mining from mineral block %d\n", scv_counter, i + 1);
+                flag_if_the_mineral_is_busy[i] = 1;
+                blocks[i] = 0;
+                flag_if_the_mineral_is_busy[i] = 0;
+                printf("SCV %d is transporting minerals\n", scv_counter);
+                sleep(2);
+                printf("SCV %d delivered minerals to the Command center\n", scv_counter);
+                cc.all_the_scvs_mined = cc.all_the_scvs_mined + value;
+
+                pthread_mutex_unlock(&lock);
             }
 
             else
