@@ -33,7 +33,6 @@ struct CommandCenter
 };
 
 pthread_mutex_t lock;
-pthread_mutex_t soldier;
 
 int minerals = 0;
 
@@ -65,13 +64,15 @@ void *scv(void *args)
                     printf("SCV %d is mining from mineral block %d\n", scv_counter, i + 1);
                     flag_if_the_mineral_is_busy[i] = 1;
                     blocks[i] = blocks[i] - 8;
+
                     flag_if_the_mineral_is_busy[i] = 0;
                     printf("SCV %d is transporting minerals\n", scv_counter);
                     sleep(2);
+                
                     printf("SCV %d delivered minerals to the Command center\n", scv_counter);
                     cc.all_the_scvs_mined = cc.all_the_scvs_mined + 8;
-
                     pthread_mutex_unlock(&lock);
+                    
                 }
 
 
@@ -82,18 +83,20 @@ void *scv(void *args)
             }
 
             else if(*(blocks + i) > 0 || *(blocks + i) < 8)
-            {
-                pthread_mutex_lock(&lock);
+            {   
                 int value = *(blocks + i);
+                pthread_mutex_lock(&lock);
                 printf("SCV %d is mining from mineral block %d\n", scv_counter, i + 1);
                 flag_if_the_mineral_is_busy[i] = 1;
                 blocks[i] = 0;
+                
+
                 flag_if_the_mineral_is_busy[i] = 0;
                 printf("SCV %d is transporting minerals\n", scv_counter);
                 sleep(2);
+                
                 printf("SCV %d delivered minerals to the Command center\n", scv_counter);
                 cc.all_the_scvs_mined = cc.all_the_scvs_mined + value;
-
                 pthread_mutex_unlock(&lock);
             }
 
@@ -106,47 +109,15 @@ void *scv(void *args)
     pthread_exit(NULL);
 }
 
-void *input(void *args)
-{
-    char choice;
-
-    choice = getc(stdin);
-
-    if(choice != '\n' && choice == 'm')
-    {
-        if(cc.all_the_scvs_mined > 50)
-        {
-            sleep(1);
-
-            pthread_mutex_lock(&soldier);
-            cc.soldier_counter = cc.soldier_counter + 1;
-            pthread_mutex_unlock(&soldier);
-
-            pthread_mutex_lock(&lock);
-            cc.all_the_scvs_mined = cc.all_the_scvs_mined - 50; 
-            pthread_mutex_unlock(&lock);
-
-            printf("You wanna piece of me, boy?\n");
-        }
-
-        else
-        {
-            printf("Not enough minerals.\n");
-        }
-    }
-
-    pthread_exit(NULL);
-}
-
 int main(int argc, char *argv[])
 {
     cc.all_the_scvs_mined = 0;
     pthread_t *SCV_T = malloc(5 * sizeof(pthread_t));
-    //pthread_t input_t;
 
     int l_rc;
-
     int all_minerals = 0;
+
+    pthread_mutex_init(&lock, NULL);
 
     if(argc < 2)
     {
@@ -187,16 +158,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    /*while(cc.soldier_counter != 20)
-    {
-        l_rc = pthread_create(&input_t, NULL, &input, NULL);
-        if(l_rc)
-        {   
-            printf("%d - %s\n", l_rc, strerror(l_rc));
-            return 1;
-        }
-    }*/
-
     for(int i = 0 ; i < 5 ; i++)
     {
         int *id = malloc(sizeof(int));
@@ -210,6 +171,28 @@ int main(int argc, char *argv[])
         }
     }
 
+    /*while(cc.soldier_counter < 20)
+    {
+        char choice;
+        choice = getc(stdin);
+
+        if(choice == 'm')
+        {
+            if(cc.all_the_scvs_mined >= 50)
+            {
+                cc.all_the_scvs_mined = cc.all_the_scvs_mined - 50;
+                sleep(1);
+                cc.soldier_counter = cc.soldier_counter + 1;
+                printf("You wanna piece of me, boy?\n");
+            }
+
+            else
+            {
+                printf("Not enough minerals.\n");
+            }
+        }
+    }*/
+
     for(int i = 0 ; i < 5 ; i++)
     {
         if(pthread_join(SCV_T[i], NULL) != 0)
@@ -219,17 +202,10 @@ int main(int argc, char *argv[])
         }
     }
 
-    /*if(pthread_join(input_t, NULL) != 0)
-    {
-        perror("pthread_join() failed\n");
-        return 1;
-    }*/
-
     printf("Map minerals %d, player minerals %d, SCVs %d, Marines %d\n", all_minerals, cc.all_the_scvs_mined, 5, cc.soldier_counter);
     
     pthread_exit(NULL);
     pthread_mutex_destroy(&lock);
-    pthread_mutex_destroy(&soldier);
     free(blocks);
     free(flag_if_the_mineral_is_busy);
     free(size_of_blocks);
