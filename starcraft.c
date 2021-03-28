@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
 
     int l_rc;
     all_minerals = 0;
+    int scvs = 5;
 
     pthread_mutex_init(&lock, NULL);
 
@@ -147,9 +148,8 @@ int main(int argc, char *argv[])
             flag_if_the_mineral_is_busy[i] = 0;
         }
     }
-
-
-    for(int i = 0 ; i < 5 ; i++)
+    
+    for(int i = 0 ; i < scvs ; i++)
     {
         int *id = malloc(sizeof(int));
         *id = i + 1;
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
 
     //Обучаването на войник струва 50 минерала и се симулира време за обучение 1s. 
     //След обучението на войник трябва да се изведе съобщението “You wanna piece of me, boy?”.
-    while(cc.soldier_counter < 20)
+    while(cc.soldier_counter < 20 && cc.soldier_counter + scvs < 200)
     {
         char choice;
         choice = getc(stdin);
@@ -173,7 +173,10 @@ int main(int argc, char *argv[])
         {
             if(cc.all_the_scvs_mined >= 50)
             {
+                pthread_mutex_lock(&lock);
                 cc.all_the_scvs_mined = cc.all_the_scvs_mined - 50;
+                pthread_mutex_unlock(&lock);
+
                 sleep(1);
                 cc.soldier_counter = cc.soldier_counter + 1;
                 printf("You wanna piece of me, boy?\n");
@@ -184,9 +187,39 @@ int main(int argc, char *argv[])
                 printf("Not enough minerals.\n");
             }
         }
+
+        if(choice == 's')
+        {
+            if(cc.all_the_scvs_mined >= 50)
+            {
+                pthread_mutex_lock(&lock);
+                cc.all_the_scvs_mined = cc.all_the_scvs_mined - 50;
+                scvs = scvs + 1;
+                pthread_mutex_unlock(&lock);
+
+                SCV_T = realloc(SCV_T, scvs * sizeof(pthread_t));
+                int *id = malloc(sizeof(int));
+                *id = scvs;
+                sleep(4);
+                printf("SCV good to go, sir.\n");
+
+                l_rc = pthread_create(&SCV_T[scvs - 1], NULL, &scv, (void*)id);
+
+                if(l_rc)
+                {
+                    printf("%d - %s\n", l_rc, strerror(l_rc));
+                    return 1;
+                }
+            }
+
+            else
+            {
+                printf("Not enough minerals.\n");
+            }
+        }
     }
 
-    for(int i = 0 ; i < 5 ; i++)
+    for(int i = 0 ; i < scvs ; i++)
     {
         if(pthread_join(SCV_T[i], NULL) != 0)
         {
@@ -195,12 +228,13 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("Map minerals %d, player minerals %d, SCVs %d, Marines %d\n", all_minerals, cc.all_the_scvs_mined, 5, cc.soldier_counter);
+    printf("Map minerals %d, player minerals %d, SCVs %d, Marines %d\n", all_minerals, cc.all_the_scvs_mined, scvs, cc.soldier_counter);
     
     pthread_exit(NULL);
     pthread_mutex_destroy(&lock);
     free(blocks);
     free(flag_if_the_mineral_is_busy);
-    
+    free(SCV_T);
+
     return 0;
 }
