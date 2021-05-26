@@ -1,7 +1,7 @@
 //--------------------------------------------
 // NAME: Alexander Yordanov
 // CLASS: XIb
-// NUMBER: 11
+// NUMBER: 1
 // PROBLEM: #4
 // FILE NAME: ls.c (unix file name)
 // FILE PURPOSE:
@@ -16,6 +16,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 
 // игртаят ролята на booleans, ако е подаден флаг става 1
 int flag_A = 0;
@@ -75,11 +76,162 @@ char* plsMakePath(char* a, char* b, char* c)
     return path;
 }
 
-int basic(char* d)
+int plsGiveMeSize(char* d)
+{
+    int blocksSize = 0;
+    struct dirent* entry;
+    struct stat file;
+    DIR* folder = opendir(d);
+
+    if(!folder)
+    {
+
+        if(errno == ENOENT)
+        {
+            printf("ls: cannot access %s: No such file or directory\n", d);
+        }
+
+        else
+        {
+            printf("ls: cannot open directory %s : Permission denied\n", d);
+        }
+        return 0;
+    }
+
+    while((entry = readdir(folder)) != NULL)
+    {
+        if(entry->d_name[0] != '.')
+        {
+            char* path = plsMakePath(d, "/", entry->d_name);
+            stat(path, &file);
+
+            blocksSize = blocksSize + file.st_blocks;
+
+            free(path);
+        }
+    }
+
+    blocksSize = blocksSize / 2;
+    closedir(folder);
+
+    return blocksSize;
+    
+}
+
+char* plsGiveMePerms(struct stat file)
+{
+    char* perms = malloc(10);
+
+    if(S_ISDIR(file.st_mode))
+    {
+        perms[0] = 'd';
+    }
+
+    else
+    {
+        perms[0] = '-';
+    }
+
+    if(file.st_mode & S_IRUSR)
+    {
+        perms[1] = 'r';
+    }
+
+    else
+    {
+        perms[1] = '-';
+    }
+
+    if(file.st_mode & S_IWUSR)
+    {
+        perms[2] = 'w';
+    }
+
+    else
+    {
+        perms[2] = '-';
+    }
+
+    if(file.st_mode & S_IXUSR)
+    {
+        perms[3] = 'x';
+    }
+
+    else
+    {
+        perms[3] = '-';
+    }
+
+    if(file.st_mode & S_IRGRP)
+    {
+        perms[4] = 'r';
+    }
+
+    else
+    {
+        perms[4] = '-';
+    }
+
+    if(file.st_mode & S_IWGRP)
+    {
+        perms[5] = 'w';
+    }
+
+    else
+    {
+        perms[5] = '-';
+    }
+
+    if(file.st_mode & S_IXGRP)
+    {
+        perms[6] = 'x';
+    }
+
+    else
+    {
+        perms[6] = '-';
+    }
+
+    if(file.st_mode & S_IROTH)
+    {
+        perms[7] = 'r';
+    }
+
+    else
+    {
+        perms[7] = '-';
+    }
+
+    if(file.st_mode & S_IWOTH)
+    {
+        perms[8] = 'w';
+    }
+
+    else
+    {
+        perms[8] = '-';
+    }
+
+    if(file.st_mode & S_IXOTH)
+    {
+        perms[9] = 'x';
+    }
+
+    else
+    {
+        perms[9] = '-';
+    }
+
+    return perms;
+}
+
+int show(char* d)
 {
     DIR* folder = opendir(d);
     struct dirent* entry;
     struct stat file;
+    int size = plsGiveMeSize(d);
+    int totalPrintCounter = 0;
 
     if(!folder)
     {
@@ -102,10 +254,41 @@ int basic(char* d)
         {
             if(entry->d_name[0] != '.')
             {
+                if(flag_A == 0 && flag_l == 0 && flag_R == 0)
+                {
+                    char* path = plsMakePath(d, "/", entry->d_name);
+                    stat(path, &file);
+                    typeOfFile(file);
+                    printf("%s\n", entry->d_name); 
+
+                    free(path);
+                }
+            }
+
+            else if(flag_l == 1)
+            {
                 char* path = plsMakePath(d, "/", entry->d_name);
                 stat(path, &file);
-                typeOfFile(file);
-                printf("%s\n", entry->d_name); 
+                
+                if( totalPrintCounter == 0)
+                {
+                    totalPrintCounter = 1;
+                    printf("total %d\n", size);
+                }
+
+                char* perms = plsGiveMePerms(file);
+                printf("%s ", perms);
+                printf("%ld ", file.st_nlink);
+                printf("%d ", file.st_uid);
+                printf("%d ", file.st_gid);
+                printf("%ld ", file.st_size);
+
+                char date[20];
+                strftime(date, 20, "%b %d %H:%M", localtime(&(file.st_ctime)));
+                printf("%s ", date);
+                printf("%s\n", entry->d_name);
+
+                free(perms);
             }
         }
     }
@@ -116,9 +299,12 @@ int basic(char* d)
 
 int main(int argc, char* argv[])
 {
+    struct stat file; 
+    int arguments = 0;
+
     if(argc == 1)
     {
-        basic(".");
+        show(".");
     }
 
     else if(argc > 1)
@@ -151,7 +337,50 @@ int main(int argc, char* argv[])
         {
             if(argv[i][0] != '-')
             {
-                basic(argv[i]);
+                arguments ++;
+            }
+        }
+
+        for(int i = 1 ; i < argc ; i++)
+        {
+            if(argv[i][0] != '-')
+            {
+                if(stat(argv[i], &file)!= 0)
+                {
+                    printf("ls: cannot access %s\n", argv[i]);
+                }
+
+                else if((file.st_mode & S_IFDIR))
+                {
+                    if(arguments == 1)
+                    {
+                        show(argv[i]);
+                    }
+
+                    else
+                    {
+                        printf("%s:\n", argv[i]);
+                        show(argv[i]);
+                        
+                        if(i != arguments)
+                        {
+                            printf("\n");
+                        }
+                    }   
+                }
+
+                else
+                {
+                    typeOfFile(file);
+                    printf("%s\n", argv[i]);
+
+                    if(i != arguments)
+                    {
+                        printf("\n");
+                    }
+                }
+
+                //show(argv[i]);
             }
         }
 
