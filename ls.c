@@ -102,7 +102,7 @@ int plsGiveMeSize(char* d)
 
     while((entry = readdir(folder)) != NULL)
     {
-        if(entry->d_name[0] != '.')
+        if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
         {
             char* path = plsMakePath(d, "/", entry->d_name);
             stat(path, &file);
@@ -303,14 +303,49 @@ int show(char* d)
 
                 else if(flag_A == 1) 
                 {
-                    if(strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0)
+                    if(flag_l == 1)
                     {
-                        char* path = plsMakePath(d, "/", entry->d_name);
-                        stat(path, &file);
-                        typeOfFile(file);
-                        printf("%s\n", entry->d_name); 
-                        free(path); 
-                    } 
+                        if(strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0)
+                        {
+                            char* path = plsMakePath(d, "/", entry->d_name);
+                            stat(path, &file);
+                            
+                            if( totalPrintCounter == 0)
+                            {
+                                totalPrintCounter = 1;
+                                printf("total %d\n", size);
+                            }
+
+                            struct passwd* userInfo = getpwuid(file.st_uid);
+                            struct group* grouInfo = getgrgid(file.st_gid);
+
+                            char* perms = plsGiveMePerms(file);
+                            printf("%s ", perms);
+                            printf("%ld ", file.st_nlink);
+                            printf("%s ", userInfo->pw_name);
+                            printf("%s ", grouInfo->gr_name);
+                            printf("%ld ", file.st_size);
+
+                            char date[20];
+                            strftime(date, 20, "%b %d %H:%M", localtime(&(file.st_ctime)));
+                            printf("%s ", date);
+                            printf("%s\n", entry->d_name);
+
+                            free(perms);
+                        }
+                    }
+
+                    else
+                    {
+                        if(strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0)
+                        {
+                            char* path = plsMakePath(d, "/", entry->d_name);
+                            stat(path, &file);
+                            typeOfFile(file);
+                            printf("%s\n", entry->d_name); 
+                            free(path); 
+                        }
+                    }
                 }
             }
         }
