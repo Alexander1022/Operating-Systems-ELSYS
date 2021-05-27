@@ -17,6 +17,8 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <grp.h>
+#include <pwd.h>
 
 // игртаят ролята на booleans, ако е подаден флаг става 1
 int flag_A = 0;
@@ -222,6 +224,8 @@ char* plsGiveMePerms(struct stat file)
         perms[9] = '-';
     }
 
+    perms[10] = '\0';
+
     return perms;
 }
 
@@ -252,43 +256,62 @@ int show(char* d)
     {
         while((entry = readdir(folder)) != NULL)
         {
-            if(entry->d_name[0] != '.')
+            // игнорираме "." и ".."
+            if(strcmp(entry->d_name, "..") != 0 || strcmp(entry->d_name, ".") != 0)
             {
-                if(flag_A == 0 && flag_l == 0 && flag_R == 0)
+                if(entry->d_name[0] != '.')
                 {
-                    char* path = plsMakePath(d, "/", entry->d_name);
-                    stat(path, &file);
-                    typeOfFile(file);
-                    printf("%s\n", entry->d_name); 
+                    if(flag_l == 0)
+                    {
+                        char* path = plsMakePath(d, "/", entry->d_name);
+                        stat(path, &file);
+                        typeOfFile(file);
+                        printf("%s\n", entry->d_name); 
 
-                    free(path);
+                        free(path);
+                    }
+
+                    else if(flag_l == 1)
+                    {
+                        char* path = plsMakePath(d, "/", entry->d_name);
+                        stat(path, &file);
+                        
+                        if( totalPrintCounter == 0)
+                        {
+                            totalPrintCounter = 1;
+                            printf("total %d\n", size);
+                        }
+
+                        struct passwd* userInfo = getpwuid(file.st_uid);
+                        struct group* grouInfo = getgrgid(file.st_gid);
+
+                        char* perms = plsGiveMePerms(file);
+                        printf("%s ", perms);
+                        printf("%ld ", file.st_nlink);
+                        printf("%s ", userInfo->pw_name);
+                        printf("%s ", grouInfo->gr_name);
+                        printf("%ld ", file.st_size);
+
+                        char date[20];
+                        strftime(date, 20, "%b %d %H:%M", localtime(&(file.st_ctime)));
+                        printf("%s ", date);
+                        printf("%s\n", entry->d_name);
+
+                        free(perms);
+                    }
                 }
-            }
 
-            else if(flag_l == 1)
-            {
-                char* path = plsMakePath(d, "/", entry->d_name);
-                stat(path, &file);
-                
-                if( totalPrintCounter == 0)
+                else if(flag_A == 1) 
                 {
-                    totalPrintCounter = 1;
-                    printf("total %d\n", size);
+                    if(strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0)
+                    {
+                        char* path = plsMakePath(d, "/", entry->d_name);
+                        stat(path, &file);
+                        typeOfFile(file);
+                        printf("%s\n", entry->d_name); 
+                        free(path); 
+                    } 
                 }
-
-                char* perms = plsGiveMePerms(file);
-                printf("%s ", perms);
-                printf("%ld ", file.st_nlink);
-                printf("%d ", file.st_uid);
-                printf("%d ", file.st_gid);
-                printf("%ld ", file.st_size);
-
-                char date[20];
-                strftime(date, 20, "%b %d %H:%M", localtime(&(file.st_ctime)));
-                printf("%s ", date);
-                printf("%s\n", entry->d_name);
-
-                free(perms);
             }
         }
     }
@@ -301,7 +324,9 @@ int main(int argc, char* argv[])
 {
     struct stat file; 
     int arguments = 0;
+    int nn = 0;
 
+    // само ls, без аргументи, без флагове
     if(argc == 1)
     {
         show(".");
@@ -341,6 +366,11 @@ int main(int argc, char* argv[])
             }
         }
 
+        /*if(flag_R == 1)
+        {
+            printf(".:\n");
+        }*/
+
         for(int i = 1 ; i < argc ; i++)
         {
             if(argv[i][0] != '-')
@@ -359,8 +389,14 @@ int main(int argc, char* argv[])
 
                     else
                     {
+                        if(nn == 1)
+                        {
+                            printf("\n");
+                        }
+
                         printf("%s:\n", argv[i]);
                         show(argv[i]);
+                        nn = 0;
                         
                         if(i != arguments)
                         {
@@ -373,14 +409,25 @@ int main(int argc, char* argv[])
                 {
                     typeOfFile(file);
                     printf("%s\n", argv[i]);
+                    nn = 1;
 
-                    if(i != arguments)
+                    if(nn == 1)
+                    {
+                        continue;
+                    }
+
+                    else if(i != arguments)
                     {
                         printf("\n");
                     }
                 }
 
                 //show(argv[i]);
+            }
+
+            else
+            {
+                show(".");
             }
         }
 
