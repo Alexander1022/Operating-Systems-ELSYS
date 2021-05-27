@@ -298,6 +298,7 @@ int show(char* d)
                         printf("%s\n", entry->d_name);
 
                         free(perms);
+                        free(path);
                     }
                 }
 
@@ -332,6 +333,7 @@ int show(char* d)
                             printf("%s\n", entry->d_name);
 
                             free(perms);
+                            free(path);
                         }
                     }
 
