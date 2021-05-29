@@ -391,7 +391,7 @@ int show(char* d)
         {
             for(int length = 0 ; length < directs ; length++)
             {
-                printf("\n%s: ", paths[length]);
+                printf("\n%s:", paths[length]);
                 printf("\n");
                 show(paths[length]);
             }
