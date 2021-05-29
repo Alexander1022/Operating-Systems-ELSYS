@@ -242,12 +242,18 @@ int show(char* d)
 
         if(errno == ENOENT)
         {
-            printf("ls: cannot access %s: No such file or directory\n", d);
+            char e[100];
+            strcpy(e, "ls: cannot access ");
+            strcat(e, d);
+            perror(e);
         }
 
         else
         {
-            printf("ls: cannot open directory %s : Permission denied\n", d);
+            char e[100];
+            strcpy(e, "ls: cannot open directory ");
+            strcat(e, d);
+            perror(e);
         }
         return 0;
     }
@@ -414,7 +420,10 @@ int main(int argc, char* argv[])
             {
                 if(stat(argv[i], &file)!= 0)
                 {
-                    printf("ls: cannot access %s\n", argv[i]);
+                    char err[100];
+                    strcpy(err, "ls: cannot access ");
+                    strcat(err, argv[i]);
+                    perror(err);
                 }
 
                 else if((file.st_mode & S_IFDIR))
