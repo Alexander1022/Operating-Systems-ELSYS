@@ -25,6 +25,8 @@ int flag_A = 0;
 int flag_l = 0;
 int flag_R = 0;
 
+
+// функцияата служи, за да принтира пред файла неговия тип
 void typeOfFile(struct stat givenFile)
 {
     switch(givenFile.st_mode & S_IFMT)
@@ -60,6 +62,7 @@ void typeOfFile(struct stat givenFile)
     }
 }
 
+// функция, която връща динамичен масив преаработен на директори { директория/файл }
 char* plsMakePath(char* a, char* b, char* c)
 {
     size_t s1 = strlen(a);
@@ -78,6 +81,7 @@ char* plsMakePath(char* a, char* b, char* c)
     return path;
 }
 
+// връща размера на блоковете / total size
 int plsGiveMeSize(char* d)
 {
     int blocksSize = 0;
@@ -120,6 +124,7 @@ int plsGiveMeSize(char* d)
     
 }
 
+// функция, която ввръща динамичен масив с правата на 3те групи
 char* plsGiveMePerms(struct stat file)
 {
     char* perms = malloc(10);
@@ -229,6 +234,7 @@ char* plsGiveMePerms(struct stat file)
     return perms;
 }
 
+// функция, която симулира ls в UNIX. Работи различно спрямо всеки даден флаг 
 int show(char* d)
 {
     DIR* folder = opendir(d);
@@ -236,6 +242,8 @@ int show(char* d)
     struct stat file;
     int size = plsGiveMeSize(d);
     int totalPrintCounter = 0;
+    char** paths = malloc(sizeof(char*));
+    int directs = 0;
 
     if(!folder)
     {
@@ -260,6 +268,7 @@ int show(char* d)
 
     else
     {
+        // четем цялата директория
         while((entry = readdir(folder)) != NULL)
         {
             // игнорираме "." и ".."
@@ -277,6 +286,7 @@ int show(char* d)
                         free(path);
                     }
 
+                    // в случай, че имаме -l -> показва детайлна информация
                     else if(flag_l == 1)
                     {
                         char* path = plsMakePath(d, "/", entry->d_name);
@@ -308,8 +318,10 @@ int show(char* d)
                     }
                 }
 
+                // в случай, че имаме -A -> показва скрити файлове
                 else if(flag_A == 1) 
                 {
+                    // в случай, че имаме -l с -А
                     if(flag_l == 1)
                     {
                         if(strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0)
@@ -355,9 +367,45 @@ int show(char* d)
                         }
                     }
                 }
+
+                // в случай, че имаме -R -> събираме директориите в динамичен вектор
+                if(flag_R == 1)
+                {
+                    if((file.st_mode & S_IFDIR))
+                    {
+                        if(strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0)
+                        {
+                            char* path = plsMakePath(d, "/", entry->d_name);
+                            stat(path, &file);
+                            directs ++;
+                            paths = realloc(paths, directs * sizeof(char*));
+                            paths[directs - 1] = path;
+                        }
+                    }
+                }
+            }
+        }
+
+        // показваме информацията за директориите, АКО ИМАМЕ -R
+        if(flag_R == 1)
+        {
+            for(int length = 0 ; length < directs ; length++)
+            {
+                printf("\n%s: ", paths[length]);
+                printf("\n");
+                show(paths[length]);
             }
         }
     }
+
+
+    // освобождавам паметта, заделена за вектора и затварям директорията
+    for(int length = 0 ; length < directs ; length++)
+    {
+        free(paths[length]);
+    }
+
+    free(paths);
 
     closedir(folder);
     return 0;
@@ -409,10 +457,10 @@ int main(int argc, char* argv[])
             }
         }
 
-        /*if(flag_R == 1)
+        if(flag_R == 1)
         {
             printf(".:\n");
-        }*/
+        }
 
         for(int i = 1 ; i < argc ; i++)
         {
